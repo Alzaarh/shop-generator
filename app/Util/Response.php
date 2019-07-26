@@ -18,8 +18,17 @@ trait Response
         ], 429);
     }
 
-    public function createdResponse($data = 'success')
+    public function modelNotFoundResponse($data = 'model not found')
     {
-        return response()->json();
+        return response()->json([
+            'data' => $data
+        ], 404);
+    }
+
+    public function badRequestResponse($data = 'bad request')
+    {
+        return response()->json([
+            'data' => $data
+        ], 400);
     }
 }

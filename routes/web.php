@@ -9,4 +9,6 @@ $router->group(['prefix' => 'auth', 'namespace' => 'Auth'], function () use ($ro
     $router->post('/signup', ['as' => 'auth.signup', 'uses' => 'AuthController@signup']);
 
     $router->get('/verify', ['as' => 'auth.verify', 'uses' => 'AuthController@verify']);
+
+    $router->post('/signin', ['as' => 'auth.signin', 'uses' => 'AuthController@signin']);
 });

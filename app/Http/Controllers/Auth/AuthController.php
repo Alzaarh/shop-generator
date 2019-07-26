@@ -50,9 +50,26 @@ class AuthController extends Controller
         return (new UserResource($user, $jwtToken))->response(201);
     }
 
+    /** login */
     public function signin(Request $request)
     {
+        $input = $this->validateSignin($request);
 
+        $user = $this->findUser($input['email']);
+
+        if(!$user)
+        {
+            return $this->modelNotFoundResponse();
+        }
+
+        if(!Hash::check($input['password'], $user->password))
+        {
+            return $this->badRequestResponse();
+        }
+
+        $jwtToken = $this->createJwt($user);
+
+        return (new UserResource($user, $jwtToken))->response(200);
     }
 
     private function validateSignup(Request $request)
@@ -131,6 +148,11 @@ class AuthController extends Controller
         return User::create($userData);
     }
 
+    private function findUser($email)
+    {
+        return User::where('email', $email)->first();
+    }
+
     private function createJwt($user)
     {
         $key = env('JWT_KEY');
@@ -138,10 +160,21 @@ class AuthController extends Controller
         $token = [
             'id' => $user->id,
             'email' => $user->email,
-            'createdAt' => $user->created_at,
-            'expireAt' => (new Carbon($user->created_at))->addDay(),
+            'createdAt' => Carbon::now(),
+            'expireAt' => Carbon::now()->addDay(),
         ];
 
         return JWT::encode($token, $key);
+    }
+
+    private function validateSignin(Request $request)
+    {
+        $rules = [
+            'email' => 'bail|required|email',
+            
+            'password' => 'bail|string|min:5|max:20',
+        ];
+
+        return $this->validate($request, $rules);
     }
 }
