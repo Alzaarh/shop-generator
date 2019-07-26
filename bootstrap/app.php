@@ -61,9 +61,10 @@ $app->middleware([
     App\Http\Middleware\AddAuthTypeToRequest::class,
 ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+    'auth' => App\Http\Middleware\Auth::class,
+    'guest' => App\Http\Middleware\IsGuest::class,
+]);
 
 /*
 |--------------------------------------------------------------------------

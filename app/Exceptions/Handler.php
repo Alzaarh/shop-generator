@@ -8,9 +8,12 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Util\Response;
 
 class Handler extends ExceptionHandler
 {
+    use Response;
+
     /**
      * A list of the exception types that should not be reported.
      *
@@ -45,6 +48,16 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if($exception instanceof \DomainException)
+        {
+            return $this->badRequestResponse();
+        }
+
+        if($exception instanceof \UnexpectedValueException)
+        {
+            return $this->badRequestResponse();
+        }
+        
         return parent::render($request, $exception);
     }
 }
