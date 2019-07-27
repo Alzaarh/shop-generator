@@ -23,15 +23,33 @@ class AuthController extends Controller
     {
         $input = $this->validateSignup($request);
 
-        if(Redis::exists('tempUser:' . $input['email']) &&
-            Redis::hget('tempUser:' . $input['email'], 'verificationSentCount') > 10)
+        switch($request->authType)
         {
-            return $this->tooManyRequestsResponse();
+            case 'email_based':
+
+                if(Redis::exists('tempUser:' . $input['email']) &&
+                    Redis::hget('tempUser:' . $input['email'], 'verificationSentCount') > 10)
+                {
+                    return $this->tooManyRequestsResponse();
+                }
+
+                event(new SignupRequest($input));
+
+                return $this->okResponse();
+
+                break;
+
+            case 'username_based':
+                
+                $userData = $this->transformToDatabaseInput($input);
+
+                $user = $this->createUser($userData);
+
+                $jwtToken = $this->createJwt($user);
+
+                return (new UserResource($user, $jwtToken))->response(201);
         }
-
-        event(new SignupRequest($input));
-
-        return $this->okResponse();
+        
     }
 
     /** verify user account */
@@ -94,6 +112,28 @@ class AuthController extends Controller
                     'phone' => 'bail|string|nullable|numeric|max:15',
                 ];
                 
+                return $this->validate($request, $rules);
+
+                break;
+            
+            case 'username_based':
+                
+                $rules = [
+                    'firstName' => 'bail|string|nullable|max:255',
+
+                    'lastName' => 'bail|string|nullable|max:255',
+
+                    'name' => 'bail|string|nullable|max:255',
+
+                    'username' => 'bail|required|string|max:255, unique:users,username',
+
+                    'email' => 'bail|email|unique:users,email',
+
+                    'password' => 'bail|required|string|min:5|max:20|confirmed',
+
+                    'phone' => 'bail|string|nullable|numeric|max:15',
+                ];
+
                 return $this->validate($request, $rules);
 
                 break;
