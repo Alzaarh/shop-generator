@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
         'countries',
         'states',
         'cities',
+        'categories',
     ];
 
     /**
@@ -30,5 +31,7 @@ class DatabaseSeeder extends Seeder
 
         /** country,state,city */
         $this->call(CountryStateCitySeeder::class);
+
+        $this->call(CategorySeeder::class);
     }
 }
