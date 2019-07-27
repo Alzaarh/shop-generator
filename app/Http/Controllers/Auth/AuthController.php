@@ -71,23 +71,53 @@ class AuthController extends Controller
     /** login */
     public function signin(Request $request)
     {
-        $input = $this->validateSignin($request);
-
-        $user = $this->findUser($input['email']);
-
-        if(!$user)
+        switch($request->authType)
         {
-            return $this->modelNotFoundResponse();
+            case 'email_based':
+
+                $input = $this->validateSignin($request);
+
+                $user = $this->findUser($input['email']);
+        
+                if(!$user)
+                {
+                    return $this->modelNotFoundResponse();
+                }
+        
+                if(!Hash::check($input['password'], $user->password))
+                {
+                    return $this->badRequestResponse();
+                }
+        
+                $jwtToken = $this->createJwt($user);
+        
+                return (new UserResource($user, $jwtToken))->response(200);
+
+                break;
+
+            case 'username_based':
+
+                $input = $this->validateSignin($request);
+
+                $user = $this->findUser($input['username']);
+
+                if(!$user)
+                {
+                    return $this->modelNotFoundResponse();
+                }
+        
+                if(!Hash::check($input['password'], $user->password))
+                {
+                    return $this->badRequestResponse();
+                }
+        
+                $jwtToken = $this->createJwt($user);
+        
+                return (new UserResource($user, $jwtToken))->response(200);
+
+                break;
         }
-
-        if(!Hash::check($input['password'], $user->password))
-        {
-            return $this->badRequestResponse();
-        }
-
-        $jwtToken = $this->createJwt($user);
-
-        return (new UserResource($user, $jwtToken))->response(200);
+        
     }
 
     private function validateSignup(Request $request)
@@ -188,9 +218,22 @@ class AuthController extends Controller
         return User::create($userData);
     }
 
-    private function findUser($email)
+    private function findUser($input)
     {
-        return User::where('email', $email)->first();
+        switch($request->authType)
+        {
+            case 'email_based':
+
+                return User::where('email', $input)->first();
+
+                break;
+
+            case 'username_based':
+
+                return User::where('username', $input)->first();
+
+                break;
+        }
     }
 
     private function createJwt($user)
@@ -209,12 +252,28 @@ class AuthController extends Controller
 
     private function validateSignin(Request $request)
     {
-        $rules = [
-            'email' => 'bail|required|email',
-            
-            'password' => 'bail|string|min:5|max:20',
-        ];
+        switch($request->authType)
+        {
+            case 'email_based':
 
-        return $this->validate($request, $rules);
+                $rules = [
+                    'email' => 'bail|required|email',
+                    
+                    'password' => 'bail|required|string|min:5|max:20',
+                ];
+        
+                return $this->validate($request, $rules);
+
+            case 'username_based':
+                
+                $rules = [
+                    'username' => 'bail|required|string|max:255',
+
+                    'password' => 'bail|required|string|min:5|max:20',
+                ];
+
+                return $this->validate($request, $rules);
+        }
+        
     }
 }
