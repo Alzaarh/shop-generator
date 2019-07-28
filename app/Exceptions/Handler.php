@@ -58,6 +58,11 @@ class Handler extends ExceptionHandler
             return $this->badRequestResponse();
         }
         
+        if($exception instanceof ModelNotFoundException)
+        {
+            return $this->modelNotFoundResponse();
+        }
+        
         return parent::render($request, $exception);
     }
 }

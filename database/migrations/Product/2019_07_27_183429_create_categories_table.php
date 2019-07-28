@@ -27,6 +27,8 @@ class CreateCategoriesTable extends Migration
 
             $table->foreign('parent_id')->references('id')->on('categories')->onDelete('cascade');
 
+            $table->softDeletes();
+            
             $table->timestamps();
         });
     }

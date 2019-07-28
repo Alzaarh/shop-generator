@@ -10,6 +10,8 @@ class DatabaseSeeder extends Seeder
         'states',
         'cities',
         'categories',
+        'attributes',
+        'attribute_category',
     ];
 
     /**
